@@ -25,21 +25,17 @@ DARK_GREEN = (0, 150, 0)
 font_path = (r"C:\Users\Arnaldo\AppData\Local\Microsoft\Windows\Fonts\NotoSansJP-VariableFont_wght.ttf")
 # Cargar la fuente
 try:
-    # Aumentamos el tamaño de la fuente para un efecto más bold
-    font = pg.font.Font(font_path, 16)  
-    # Creamos una segunda fuente ligeramente más pequeña para el efecto de bloom
-    font_glow = pg.font.Font(font_path, 15)  
+    font = pg.font.Font(font_path, 14)  # Aumentamos ligeramente el tamaño
 except FileNotFoundError:
     print(f"Fuente no encontrada en {font_path}. Usando fuente predeterminada.")
-    font = pg.font.Font(None, 16)
-    font_glow = pg.font.Font(None, 15)
+    font = pg.font.Font(None, 14)
 
 # Caracteres específicos para la lluvia de Matrix (usando caracteres de ancho completo)
-selected_characters = "アイウエオカキクケコサシスセソタチツテト０１２３４５６７８９"
+selected_characters = "アイウエオカキクケコサシスセソタチツテト０１２３４５６７８９"  # Números japoneses de ancho completo
 
 # Configuración de la cuadrícula
-CELL_SIZE = 20
-column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
+CELL_SIZE = 20  # Tamaño fijo para cada celda
+column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE  # Alinear a la cuadrícula
 
 class Letter:
     def __init__(self, char):
@@ -54,39 +50,25 @@ def random_char():
 def random_char2():
     return random.choice(selected_characters)
 
-# Función para renderizar texto con efecto de negrita
-def render_bold_text(char, color, font, font_glow):
-    # Renderizar el texto principal
-    text_surface = font.render(char, True, color)
-    
-    # Renderizar el resplandor (glow) para efecto de negrita
-    glow_surface = font_glow.render(char, True, color)
-    
-    # Crear una superficie final que combine ambas
-    final_surface = pg.Surface((CELL_SIZE, CELL_SIZE), pg.SRCALPHA)
-    
-    # Centrar ambas superficies
-    text_rect = text_surface.get_rect(center=(CELL_SIZE/2, CELL_SIZE/2))
-    glow_rect = glow_surface.get_rect(center=(CELL_SIZE/2, CELL_SIZE/2))
-    
-    # Dibujar primero el resplandor y luego el texto principal
-    final_surface.blit(glow_surface, glow_rect)
-    final_surface.blit(text_surface, text_rect)
-    
-    return final_surface
+# Contador de cadenas completadas
+completed_chains = 0
+MAX_CHAINS = 3  # Número de cadenas completas que queremos generar
+chain_complete = False
 
 # Bucle principal
-while True:
+running = True
+while running:
     current_time = pg.time.get_ticks()
     
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            pg.quit()
-            quit()
+            running = False
 
     screen.fill(BLACK)
 
-    letters.append(Letter(random_char2()))
+    # Solo agregamos nuevas letras si no hemos completado la cadena actual
+    if not chain_complete:
+        letters.append(Letter(random_char2()))
 
     for i, letter in enumerate(letters):
         if current_time > letter.change_time:
@@ -100,21 +82,35 @@ while True:
         else:
             color = DARK_GREEN
         
-        # Renderizar texto con efecto de negrita
-        text_surface = render_bold_text(letter.char, color, font, font_glow)
-        x_pos = column_x_pos
+        # Centrar el carácter en su celda
+        text = font.render(letter.char, True, color)
+        text_rect = text.get_rect()
+        x_centered = column_x_pos + (CELL_SIZE - text_rect.width) // 2
         y_pos = i * CELL_SIZE
         
-        screen.blit(text_surface, (x_pos, y_pos))
+        screen.blit(text, (x_centered, y_pos))
 
     max_letters = HEIGHT // CELL_SIZE
     if len(letters) > max_letters:
         letters.pop(0)
+        if not chain_complete:
+            chain_complete = True
+            completed_chains += 1
+            # Si hemos completado todas las cadenas deseadas, terminamos
+            if completed_chains >= MAX_CHAINS:
+                # Esperamos un momento para que se vea la última cadena
+                pg.time.delay(1000)
+                running = False
 
-    for i in range(len(letters)):
-        if i * CELL_SIZE >= HEIGHT:
-            column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
-            letters[i] = Letter(random_char2())
+    # Si la cadena actual está completa y aún no hemos alcanzado el máximo,
+    # preparamos una nueva cadena en una nueva posición
+    if chain_complete and completed_chains < MAX_CHAINS:
+        column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
+        letters = []  # Limpiamos las letras para la nueva cadena
+        chain_complete = False
 
     pg.display.flip()
     pg.time.delay(100)
+
+# Cerrar Pygame
+pg.quit()
