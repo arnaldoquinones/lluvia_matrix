@@ -50,18 +50,25 @@ def random_char():
 def random_char2():
     return random.choice(selected_characters)
 
+# Contador de cadenas completadas
+completed_chains = 0
+MAX_CHAINS = 3  # Número de cadenas completas que queremos generar
+chain_complete = False
+
 # Bucle principal
-while True:
+running = True
+while running:
     current_time = pg.time.get_ticks()
     
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            pg.quit()
-            quit()
+            running = False
 
     screen.fill(BLACK)
 
-    letters.append(Letter(random_char2()))
+    # Solo agregamos nuevas letras si no hemos completado la cadena actual
+    if not chain_complete:
+        letters.append(Letter(random_char2()))
 
     for i, letter in enumerate(letters):
         if current_time > letter.change_time:
@@ -86,11 +93,24 @@ while True:
     max_letters = HEIGHT // CELL_SIZE
     if len(letters) > max_letters:
         letters.pop(0)
+        if not chain_complete:
+            chain_complete = True
+            completed_chains += 1
+            # Si hemos completado todas las cadenas deseadas, terminamos
+            if completed_chains >= MAX_CHAINS:
+                # Esperamos un momento para que se vea la última cadena
+                pg.time.delay(1000)
+                running = False
 
-    for i in range(len(letters)):
-        if i * CELL_SIZE >= HEIGHT:
-            column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
-            letters[i] = Letter(random_char2())
+    # Si la cadena actual está completa y aún no hemos alcanzado el máximo,
+    # preparamos una nueva cadena en una nueva posición
+    if chain_complete and completed_chains < MAX_CHAINS:
+        column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
+        letters = []  # Limpiamos las letras para la nueva cadena
+        chain_complete = False
 
     pg.display.flip()
     pg.time.delay(100)
+
+# Cerrar Pygame
+pg.quit()

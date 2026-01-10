@@ -15,20 +15,24 @@ WIDTH, HEIGHT = 600, 400
 screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("LLuvia Matrix.")
 
-# Colores
+# Colores con degradado
+WHITE = (255, 255, 255)
+LIGHT_GREEN = (200, 255, 200)
+GREEN = (0, 255, 0)
+DARK_GREEN = (0, 100, 0)
+DARKER_GREEN = (0, 50, 0)
 BLACK = (0, 0, 0)
-GREEN = (0, 250, 0)
-BRIGHT_GREEN = (160, 255, 160)
-DARK_GREEN = (0, 150, 0)
 
 # Ruta a la fuente personalizada
 font_path = (r"C:\Users\Arnaldo\AppData\Local\Microsoft\Windows\Fonts\NotoSansJP-VariableFont_wght.ttf")
 # Cargar la fuente
 try:
-    font = pg.font.Font(font_path, 14)  # Aumentamos ligeramente el tamaño
+    font = pg.font.Font(font_path, 11) 
+    # ACTIVAR NEGRITA AQUÍ:
+    font.set_bold(True) 
 except FileNotFoundError:
     print(f"Fuente no encontrada en {font_path}. Usando fuente predeterminada.")
-    font = pg.font.Font(None, 14)
+    font = pg.font.SysFont("arial", 14, bold=True) # Fuente del sistema en negrita como respaldo
 
 # Caracteres específicos para la lluvia de Matrix (usando caracteres de ancho completo)
 selected_characters = "アイウエオカキクケコサシスセソタチツテト０１２３４５６７８９"  # Números japoneses de ancho completo
@@ -40,7 +44,7 @@ column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
 class Letter:
     def __init__(self, char):
         self.char = char
-        self.change_time = pg.time.get_ticks() + random.randint(100, 500)
+        self.change_time = pg.time.get_ticks() + random.randint(200, 800)  # Tiempo más largo para cambios más lentos
 
 letters = []
 
@@ -49,6 +53,21 @@ def random_char():
 
 def random_char2():
     return random.choice(selected_characters)
+
+# Función para obtener color según la posición (ahora invertida)
+def get_gradient_color(position, total_positions):
+    if position == 0:
+        return BLACK
+    elif position == 1:
+        return DARKER_GREEN
+    elif position < total_positions * 0.3:
+        return DARK_GREEN
+    elif position < total_positions * 0.6:
+        return GREEN
+    elif position < total_positions * 0.8:
+        return LIGHT_GREEN
+    else:
+        return WHITE
 
 # Contador de cadenas completadas
 completed_chains = 0
@@ -70,17 +89,16 @@ while running:
     if not chain_complete:
         letters.append(Letter(random_char2()))
 
+    max_letters = HEIGHT // CELL_SIZE
+    total_letters = len(letters)
+
     for i, letter in enumerate(letters):
         if current_time > letter.change_time:
             letter.char = random_char2()
-            letter.change_time = current_time + random.randint(100, 500)
+            letter.change_time = current_time + random.randint(200, 800)  # Tiempo más largo para cambios más lentos
         
-        if i == 0:
-            color = BRIGHT_GREEN
-        elif i < 3:
-            color = GREEN
-        else:
-            color = DARK_GREEN
+        # Obtener color basado en la posición
+        color = get_gradient_color(i, max_letters)
         
         # Centrar el carácter en su celda
         text = font.render(letter.char, True, color)
@@ -90,27 +108,21 @@ while running:
         
         screen.blit(text, (x_centered, y_pos))
 
-    max_letters = HEIGHT // CELL_SIZE
     if len(letters) > max_letters:
         letters.pop(0)
         if not chain_complete:
             chain_complete = True
             completed_chains += 1
-            # Si hemos completado todas las cadenas deseadas, terminamos
             if completed_chains >= MAX_CHAINS:
-                # Esperamos un momento para que se vea la última cadena
                 pg.time.delay(1000)
                 running = False
 
-    # Si la cadena actual está completa y aún no hemos alcanzado el máximo,
-    # preparamos una nueva cadena en una nueva posición
     if chain_complete and completed_chains < MAX_CHAINS:
         column_x_pos = (random.randint(0, (WIDTH - CELL_SIZE) // CELL_SIZE)) * CELL_SIZE
-        letters = []  # Limpiamos las letras para la nueva cadena
+        letters = []
         chain_complete = False
 
     pg.display.flip()
-    pg.time.delay(100)
+    pg.time.delay(200)  # Aumentado el delay para hacer la caída más lenta
 
-# Cerrar Pygame
 pg.quit()
