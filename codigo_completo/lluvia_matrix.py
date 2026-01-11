@@ -69,7 +69,7 @@ while running:
             screen.blit(char_surf, char_rect)
 
         # Mutación
-        if random.random() > 0.4:
+        if random.random() > 0.2:
             mut_offset = random.randint(4, 30)
             target_x, target_y = i * FONT_SIZE + FONT_SIZE // 2, (drops[i] - mut_offset) * FONT_SIZE + FONT_SIZE // 2
             if 0 <= target_y < HEIGHT:
