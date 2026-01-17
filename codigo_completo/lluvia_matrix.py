@@ -15,7 +15,7 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 
 # --- CONFIGURACIÓN ---
-FONT_SIZE = 12
+FONT_SIZE = 10
 font = pg.font.SysFont("ms gothic", FONT_SIZE, bold=True)
 chars = [chr(int('0x30a0', 16) + i) for i in range(96)] + [str(x) for x in range(10)]
 
