@@ -113,11 +113,17 @@ while running:
                 sample_x = i * FONT_SIZE + FONT_SIZE // 2
                 sample_y = target_row * FONT_SIZE + FONT_SIZE // 2
                 curr_color = screen.get_at((int(sample_x), int(sample_y)))
-                
-                if curr_color != BLACK:
-                    # Aplicamos intensidad de glow (ej. 50) que se desvanecerá con el rastro
-                    draw_aligned_char(random.choice(chars), i, target_row, curr_color, 
-                                    glow_intensity=50, clear_first=True)
+                brightness = curr_color.r + curr_color.g + curr_color.b
+
+                # Ignoramos restos ya casi invisibles (evita "resucitar" con
+                # glow un carácter que ya casi terminó de desvanecerse) y
+                # escalamos la intensidad del glow según cuánto brillo le
+                # queda, en vez de un valor fijo que se veía igual de fuerte
+                # sin importar qué tan apagado estuviera el rastro.
+                if brightness > 30:
+                    mutation_glow = int(50 * min(brightness / 255, 1.0))
+                    draw_aligned_char(random.choice(chars), i, target_row, curr_color,
+                                    glow_intensity=mutation_glow, clear_first=True)
 
         # --- DIBUJO DE LA GOTA ---
         if drops[i] >= 3: draw_aligned_char(history[i][0], i, drops[i] - 3, GREEN)

@@ -1,0 +1,42 @@
+# Entornos virtuales
+venv/
+env/
+.env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de proyecto
+.DS_Store
+Thumbs.db
+
+# Distribución / empaquetado
+build/
+dist/
+*.egg-info/
+
+# Instaladores
+*.exe
+*.msi
+*.dmg
+
+# Base de datos / chroma (para tu proyecto de IA)
+chromadb/
+*.db
+*.sqlite3
+
+# Logs
+*.log
